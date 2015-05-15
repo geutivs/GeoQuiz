@@ -1,7 +1,9 @@
 package geoquiz.android.bignerdranch.com.geoquiz;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.widget.Button;
@@ -14,9 +16,12 @@ public class QuizActivity extends Activity {
     private Button mFalseButton;
     private Button mNextButton;
     private Button mPrevButton;
+    private Button mCheatButton;
     private TextView mQuestionTextView;
 
-    private int mCurrentInex = 0;
+    private static final String KEY_INDEX = "index";
+
+    private int mCurrentIndex = 0;
 
     private TrueFalse[] mQuestionBank = new TrueFalse[] {
             new TrueFalse(R.string.question_oceans, true),
@@ -26,10 +31,19 @@ public class QuizActivity extends Activity {
             new TrueFalse(R.string.question_asia, true)
     };
 
+    private static final String TAG = "QuizActivity";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
+        Log.d(TAG,"onCreate(Bundle) called");
+
         setContentView(R.layout.activity_quiz);
+
+        if(savedInstanceState != null) {
+            mCurrentIndex = savedInstanceState.getInt(KEY_INDEX);
+        }
 
         mQuestionTextView = (TextView)findViewById(R.id.question_text_view);
         updateQuestion();
@@ -57,7 +71,7 @@ public class QuizActivity extends Activity {
 
             @Override
             public void onClick(View v) {
-                mCurrentInex = (mCurrentInex + 1) % mQuestionBank.length;
+                mCurrentIndex = (mCurrentIndex + 1) % mQuestionBank.length;
                 updateQuestion();
             }
         });
@@ -67,14 +81,63 @@ public class QuizActivity extends Activity {
 
             @Override
             public void onClick(View v) {
-                mCurrentInex = (mCurrentInex - 1 + mQuestionBank.length) % mQuestionBank.length;
+                mCurrentIndex = (mCurrentIndex - 1 + mQuestionBank.length) % mQuestionBank.length;
                 updateQuestion();
+            }
+        });
+
+        mCheatButton = (Button)findViewById(R.id.cheat_button);
+        mCheatButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // start cheatActivity
+                Intent i = new Intent(QuizActivity.this, CheatActivity.class);
+                boolean answerIsTrue = mQuestionBank[mCurrentIndex].isTrueQuestion();
+                i.putExtra(CheatActivity.EXTRA_ANSWER_IS_TRUE, answerIsTrue);
+                startActivity(i);
             }
         });
     }
 
+    @Override
+    protected void onSaveInstanceState(Bundle savedInstanceState) {
+        super.onSaveInstanceState(savedInstanceState);
+        Log.i(TAG, "OnSaveInstance(Bundle)");
+        savedInstanceState.putInt(KEY_INDEX, mCurrentIndex);
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Log.d(TAG, "onStart() called");
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.d(TAG, "onResume() called");
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        Log.d(TAG, "onPause() called");
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        Log.d(TAG, "onStop() called");
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Log.d(TAG, "onDestory() called");
+    }
+
     private void checkAnswer(boolean userPressedTrue) {
-        boolean answerIsTrue = mQuestionBank[mCurrentInex].isTrueQuestion();
+        boolean answerIsTrue = mQuestionBank[mCurrentIndex].isTrueQuestion();
 
         int messageResId = 0;
         if(userPressedTrue == answerIsTrue) {
@@ -87,7 +150,7 @@ public class QuizActivity extends Activity {
     }
 
     private void updateQuestion() {
-        int question = mQuestionBank[mCurrentInex].getQuestion();
+        int question = mQuestionBank[mCurrentIndex].getQuestion();
         mQuestionTextView.setText(question);
     }
 
